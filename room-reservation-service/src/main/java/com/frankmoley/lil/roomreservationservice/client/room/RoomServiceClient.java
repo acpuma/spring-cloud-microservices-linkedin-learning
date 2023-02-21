@@ -13,8 +13,7 @@ public class RoomServiceClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${ROOM_SERVICE_URL}")
-    private String roomServiceUrl;
+    private String roomServiceUrl="http://room-service";
 
     private final static String ROOMS_URL_PART = "/rooms";
     private final static String SLASH = "/";

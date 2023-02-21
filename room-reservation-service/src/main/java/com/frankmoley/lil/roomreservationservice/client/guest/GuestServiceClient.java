@@ -12,8 +12,7 @@ import java.util.List;
 public class GuestServiceClient {
     private final RestTemplate restTemplate;
 
-    @Value("${GUEST_SERVICE_URL}")
-    private String guestServiceUrl;
+    private String guestServiceUrl="http://guest-service";
 
     private final static String GUESTS_URL_PART = "/guests";
     private final static String SLASH = "/";
