@@ -1,67 +1,27 @@
 package com.frankmoley.lil.roomreservationservice.client.reservation;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-@Service
-public class ReservationServiceClient {
-    private final RestTemplate restTemplate;
+@FeignClient("reservation-service")
+public interface ReservationServiceClient {
 
-    private String reservationServiceUrl="http://reservation-service";
+    @GetMapping("reservations")
+    List<Reservation> getAll(
+            @RequestParam(value = "dateString", required = false) String dateString,
+            @RequestParam(value = "guestId", required = false) Long guestId);
 
-    private final static String RESERVATIONS_URL_PART = "/reservations";
-    private final static String SLASH = "/";
+    @PostMapping("/reservations")
+    Reservation addReservation(@RequestBody Reservation reservation);
 
-    public ReservationServiceClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+    @GetMapping("/reservations/{id}")
+    Reservation getReservation(@PathVariable("id") long id);
 
-    public List<Reservation> getAll(String dateString, Long guestId) {
-        UriComponentsBuilder urlTemplate = UriComponentsBuilder.fromHttpUrl(reservationServiceUrl + RESERVATIONS_URL_PART);
-        Map<String, String> params = new HashMap<>();
-        if (StringUtils.hasLength(dateString)) {
-            urlTemplate.queryParam("date", "{date}");
-            params.put("date", dateString);
-        }
-        if (guestId != null) {
-            urlTemplate.queryParam("guestId", "{guestId}");
-            params.put("guestId", String.valueOf(guestId));
-        }
-        urlTemplate.encode();
+    @PutMapping("/reservations/{id}")
+    void updateReservation(@PathVariable("id") long id, @RequestBody Reservation reservation);
 
-        ResponseEntity<Reservation[]> response = this.restTemplate.getForEntity(urlTemplate.toUriString(), Reservation[].class, params);
-        return Arrays.asList(response.getBody());
-    }
-
-    public Reservation addReservation(Reservation reservation) {
-        String url = reservationServiceUrl + RESERVATIONS_URL_PART;
-        ResponseEntity<Reservation> response = this.restTemplate.postForEntity(url, reservation, Reservation.class);
-        return response.getBody();
-    }
-
-    public Reservation getReservation(long id) {
-        String url = reservationServiceUrl + RESERVATIONS_URL_PART + SLASH + id;
-        ResponseEntity<Reservation> response = this.restTemplate.getForEntity(url, Reservation.class);
-        return response.getBody();
-    }
-
-    public void updateReservation(Reservation reservation) {
-        String url = reservationServiceUrl + RESERVATIONS_URL_PART + SLASH + reservation.getReservationId();
-        this.restTemplate.put(url, reservation);
-    }
-
-    public void deleteReservation(long id) {
-        String url = reservationServiceUrl + RESERVATIONS_URL_PART + SLASH + id;
-        this.restTemplate.delete(url);
-    }
-
+    @DeleteMapping("/reservations/{id}")
+    void deleteReservation(@PathVariable("id") long id);
 }

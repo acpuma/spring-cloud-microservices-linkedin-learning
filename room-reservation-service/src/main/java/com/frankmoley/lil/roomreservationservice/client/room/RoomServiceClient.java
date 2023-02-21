@@ -1,52 +1,25 @@
 package com.frankmoley.lil.roomreservationservice.client.room;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 
-@Service
-public class RoomServiceClient {
+@FeignClient("room-service")
+public interface RoomServiceClient {
 
-    private final RestTemplate restTemplate;
+    @GetMapping("/rooms")
+    List<Room> getAll();
 
-    private String roomServiceUrl="http://room-service";
+    @PostMapping("/rooms")
+    Room addRoom(@RequestBody Room room);
 
-    private final static String ROOMS_URL_PART = "/rooms";
-    private final static String SLASH = "/";
+    @GetMapping("/rooms/{id}")
+    Room getRoom(@PathVariable("id") long id);
 
-    public RoomServiceClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+    @PutMapping("/rooms/{id}")
+    void updateRoom(@PathVariable("id") long id, @RequestBody Room room);
 
-    public List<Room> getAll() {
-        String url = roomServiceUrl + ROOMS_URL_PART;
-        ResponseEntity<Room[]> response = this.restTemplate.getForEntity(url, Room[].class);
-        return Arrays.asList(response.getBody());
-    }
-
-    public Room addRoom(Room room) {
-        String url = roomServiceUrl + ROOMS_URL_PART;
-        ResponseEntity<Room> response = this.restTemplate.postForEntity(url, room, Room.class);
-        return response.getBody();
-    }
-
-    public Room getRoom(long id) {
-        String url = roomServiceUrl + ROOMS_URL_PART + SLASH + id;
-        ResponseEntity<Room> response = this.restTemplate.getForEntity(url, Room.class);
-        return response.getBody();
-    }
-
-    public void updateRoom(Room room) {
-        String url = roomServiceUrl + ROOMS_URL_PART + SLASH + room.getRoomId();
-        this.restTemplate.put(url, room);
-    }
-
-    public void deleteRoom(long id) {
-        String url = roomServiceUrl + ROOMS_URL_PART + SLASH + id;
-        this.restTemplate.delete(url);
-    }
+    @DeleteMapping("/rooms/{id}")
+    void deleteRoom(@PathVariable("id") long id);
 }
